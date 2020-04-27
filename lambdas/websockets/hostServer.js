@@ -1,6 +1,7 @@
 import { success, failure } from '../common/API_Responses';
 import * as dynamoDbLib from '../common/dynamodb-lib';
 import { send } from '../common/websocketMessage';
+import { getUser, connectUser } from '../common/user-db';
 
 export async function main(event) {
   console.log('Event: ', event);
@@ -17,33 +18,36 @@ export async function main(event) {
   };
 
   const { connectionId, domainName, stage } = event.requestContext;
+
+  const userData = await getUser(connectionId);
+
   const sessionId = makeid(6);
   const params = {
     TableName: process.env.sessionsTableName,
     Item: {
       SessionId: sessionId,
-      users: [connectionId],
+      HostDetails: {
+        ID: connectionId,
+        Username: userData.Username,
+      },
+      UserList: [
+        {
+          ID: connectionId,
+          Username: userData.Username,
+        },
+      ],
     },
   };
 
   try {
     await dynamoDbLib.call('put', params);
-    console.log(
-      'Domain: ',
-      domainName,
-      'Stage: ',
-      stage,
-      'ConnectionId: ',
-      connectionId,
-      'SessionID: ',
-      sessionId
-    );
+    await connectUser(connectionId, sessionId);
 
     await send({
       domainName,
       stage,
       connectionId,
-      message: sessionId,
+      message: `[{"SessionID": "${sessionId}", "Players": [{"ID": "${connectionId}", "Username": "${userData.Username}"}]}]`,
       type: 'host',
     });
     console.log('sent a reply message!');

@@ -46,11 +46,21 @@ functions:
     events:
       - websocket:
           route: $default
+  websocket-username:
+    handler: lambdas/websockets/username.main
+    events:
+      - websocket:
+          route: username
   websocket-host:
     handler: lambdas/websockets/hostServer.main
     events:
       - websocket:
           route: hostserver
+  websocket-join:
+    handler: lambdas/websockets/joinServer.main
+    events:
+      - websocket:
+          route: joinsession
 # # Create our resources with separate CloudFormation templates
 resources:
   # API Gateway Errors

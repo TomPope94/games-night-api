@@ -13,7 +13,7 @@ export const send = ({ domainName, stage, connectionId, message, type }) => {
   const ws = create(domainName, stage);
 
   const postParams = {
-    Data: `type: ${type}; message: ${message}`,
+    Data: `type:${type}; message:${message}`,
     ConnectionId: connectionId,
   };
 
