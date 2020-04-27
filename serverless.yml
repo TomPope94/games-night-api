@@ -61,6 +61,12 @@ functions:
     events:
       - websocket:
           route: joinsession
+  ##################### Articulate Routes ##########################
+  articulate-teamselect:
+    handler: lambdas/websockets/articulate/teamSelect.main
+    events:
+      - websocket:
+          route: articulateteamselect
 # # Create our resources with separate CloudFormation templates
 resources:
   # API Gateway Errors
