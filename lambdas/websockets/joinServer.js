@@ -59,9 +59,9 @@ export async function main(event) {
       domainName: userData.domainName,
       stage: userData.stage,
       connectionId: connectionId,
-      message: `[{"SessionID": "${body.data}", "Players": ${JSON.stringify(
-        sessionUsers
-      )}}]`,
+      message: `[{"SessionID": "${body.data}", "GameData": ${JSON.stringify(
+        sessionData.GameData
+      )}, "Players": ${JSON.stringify(sessionUsers)}}]`,
       type: 'server_join',
     });
 

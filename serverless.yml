@@ -67,6 +67,11 @@ functions:
     events:
       - websocket:
           route: articulateteamselect
+  articulate-statechange:
+    handler: lambdas/websockets/articulate/stateChange.main
+    events:
+      - websocket:
+          route: articulatestatechange
 # # Create our resources with separate CloudFormation templates
 resources:
   # API Gateway Errors
