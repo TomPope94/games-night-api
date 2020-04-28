@@ -3,6 +3,8 @@ import * as dynamoDbLib from '../common/dynamodb-lib';
 import { send } from '../common/websocketMessage';
 import { getUser, connectUser } from '../common/user-db';
 
+import { initGameState } from '../../constants/serverState';
+
 export async function main(event) {
   console.log('Event: ', event);
 
@@ -36,39 +38,7 @@ export async function main(event) {
           Username: userData.Username,
         },
       ],
-      GameData: {
-        Articulate: {
-          gameStarted: false,
-          gameState: 'TeamSelect',
-          gameTeams: {
-            Red: {
-              Pos: 1,
-              Players: [],
-              PlayersGone: [],
-              PlayersLeft: [],
-            },
-            Blue: {
-              Pos: 1,
-              Players: [],
-              PlayersGone: [],
-              PlayersLeft: [],
-            },
-            Orange: {
-              Pos: 1,
-              Players: [],
-              PlayersGone: [],
-              PlayersLeft: [],
-            },
-            Green: {
-              Pos: 1,
-              Players: [],
-              PlayersGone: [],
-              PlayersLeft: [],
-            },
-          },
-          gameData: [],
-        },
-      },
+      GameData: { ...initGameState },
     },
   };
 
@@ -80,7 +50,9 @@ export async function main(event) {
       domainName,
       stage,
       connectionId,
-      message: `[{"SessionID": "${sessionId}", "Players": [{"ID": "${connectionId}", "Username": "${userData.Username}"}]}]`,
+      message: `[{"SessionID": "${sessionId}", "Players": [{"ID": "${connectionId}", "Username": "${
+        userData.Username
+      }"}], "GameData": ${JSON.stringify(initGameState)}}]`,
       type: 'host',
     });
     console.log('sent a reply message!');

@@ -72,6 +72,11 @@ functions:
     events:
       - websocket:
           route: articulatestatechange
+  articulate-modechange:
+    handler: lambdas/websockets/articulate/modeChange.main
+    events:
+      - websocket:
+          route: articulatemodechange
 # # Create our resources with separate CloudFormation templates
 resources:
   # API Gateway Errors
