@@ -16,6 +16,7 @@ provider:
   environment:
     usersTableName: GamesNightUsers
     sessionsTableName: GamesNightSessions
+    s3BucketName: games-night-data
   iamRoleStatements:
     - Effect: 'Allow'
       Action:
@@ -27,6 +28,9 @@ provider:
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
       Resource: 'arn:aws:dynamodb:eu-west-1:*:*'
+    - Effect: 'Allow'
+      Action: '*'
+      Resource: 'arn:aws:s3:::games-night-data/*'
   # websocketsApiName: gamesNight-websockets-api
   # websocketsApiRouteSelectionExpression: $request.body.action # custom routes are selected by the value of the action property in the body
 
@@ -77,6 +81,31 @@ functions:
     events:
       - websocket:
           route: articulatemodechange
+  articulate-getData:
+    handler: lambdas/websockets/articulate/getData.main
+    events:
+      - websocket:
+          route: articulatedatafetch
+  articulate-nextRound:
+    handler: lambdas/websockets/articulate/nextRound.main
+    events:
+      - websocket:
+          route: articulatenextround
+  articulate-startRound:
+    handler: lambdas/websockets/articulate/startRound.main
+    events:
+      - websocket:
+          route: articulateroundstart
+  articulate-scoreUpdate:
+    handler: lambdas/websockets/articulate/scoreUpdate.main
+    events:
+      - websocket:
+          route: articulatescoreupdate
+  articulate-toSummary:
+    handler: lambdas/websockets/articulate/toSummary.main
+    events:
+      - websocket:
+          route: articulatetosummary
 # # Create our resources with separate CloudFormation templates
 resources:
   # API Gateway Errors

@@ -15,29 +15,39 @@ export async function main(event) {
   const GameData = sessionData.GameData;
   console.log('GameData: ', GameData);
 
-  const { connectionId } = event.requestContext;
-  const userData = await getUser(connectionId);
-
   const updatedGameData = {
     ...GameData,
     Articulate: {
       ...GameData.Articulate,
+      gameData: {
+        ...GameData.Articulate.gameData,
+        [data.category]: data.data,
+      },
+      wordsPassed: data.passed,
+      roundComplete: true,
       gameTeams: {
         ...GameData.Articulate.gameTeams,
-        [data.teamSelected]: {
-          ...GameData.Articulate.gameTeams[data.teamSelected],
-          Players: [
-            ...GameData.Articulate.gameTeams[data.teamSelected].Players,
-            { ID: connectionId, Username: userData.Username },
-          ],
-          PlayersLeft: [
-            ...GameData.Articulate.gameTeams[data.teamSelected].PlayersLeft,
-            { ID: connectionId, Username: userData.Username },
+        [GameData.Articulate.teamTurn]: {
+          ...GameData.Articulate.gameTeams[GameData.Articulate.teamTurn],
+          Pos:
+            GameData.Articulate.gameTeams[GameData.Articulate.teamTurn].Pos +
+            GameData.Articulate.roundScore,
+          PlayersLeft: GameData.Articulate.gameTeams[
+            GameData.Articulate.teamTurn
+          ].PlayersLeft.filter(
+            (player) => player.ID !== GameData.Articulate.playerTurn.ID
+          ),
+          PlayersGone: [
+            ...GameData.Articulate.gameTeams[GameData.Articulate.teamTurn]
+              .PlayersGone,
+            GameData.Articulate.playerTurn,
           ],
         },
       },
     },
   };
+  const objStr = JSON.stringify(updatedGameData);
+  console.log('UPDATED DATA: ', objStr);
 
   const params = {
     TableName: process.env.sessionsTableName,
@@ -67,8 +77,8 @@ export async function main(event) {
         domainName,
         stage,
         connectionId: ID,
-        message: `[{"ID": "${connectionId}", "Username": "${userData.Username}", "Team": "${data.teamSelected}"}]`,
-        type: 'articulate_team_join',
+        message: `[{"data": ${JSON.stringify(updatedGameData)}}]`,
+        type: 'articulate_summary',
       });
     }
 

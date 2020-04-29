@@ -15,27 +15,13 @@ export async function main(event) {
   const GameData = sessionData.GameData;
   console.log('GameData: ', GameData);
 
-  const { connectionId } = event.requestContext;
-  const userData = await getUser(connectionId);
-
   const updatedGameData = {
     ...GameData,
     Articulate: {
       ...GameData.Articulate,
-      gameTeams: {
-        ...GameData.Articulate.gameTeams,
-        [data.teamSelected]: {
-          ...GameData.Articulate.gameTeams[data.teamSelected],
-          Players: [
-            ...GameData.Articulate.gameTeams[data.teamSelected].Players,
-            { ID: connectionId, Username: userData.Username },
-          ],
-          PlayersLeft: [
-            ...GameData.Articulate.gameTeams[data.teamSelected].PlayersLeft,
-            { ID: connectionId, Username: userData.Username },
-          ],
-        },
-      },
+      gameState: 'RoundInProgress',
+      teamTurn: data.team,
+      playerTurn: data.player,
     },
   };
 
@@ -55,7 +41,8 @@ export async function main(event) {
   try {
     await dynamoDbLib.call('update', params);
 
-    const userList = sessionData.UserList;
+    const users = sessionData.UserList;
+    const userList = users.filter((user) => user.ID !== data.player.ID);
 
     for (let i = 0; i < userList.length; i++) {
       const player = await getUser(userList[i].ID);
@@ -67,10 +54,19 @@ export async function main(event) {
         domainName,
         stage,
         connectionId: ID,
-        message: `[{"ID": "${connectionId}", "Username": "${userData.Username}", "Team": "${data.teamSelected}"}]`,
-        type: 'articulate_team_join',
+        message: `[{"gameState": "RoundInProgress", "team": "${data.team}", "player": "${data.player.Username}", "yourTurn": false}]`,
+        type: 'articulate_next_round',
       });
     }
+
+    const turnPlayer = await getUser(data.player.ID);
+    await send({
+      domainName: turnPlayer.domainName,
+      stage: turnPlayer.stage,
+      connectionId: turnPlayer.ID,
+      message: `[{"gameState": "RoundInProgress", "team": "${data.team}", "player": "${data.player.Username}", "yourTurn": true}]`,
+      type: 'articulate_next_round',
+    });
 
     return success({ message: 'connected' });
   } catch (e) {

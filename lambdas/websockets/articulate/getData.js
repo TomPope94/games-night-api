@@ -1,11 +1,15 @@
+import { getCurrentGameData, refreshDataSet } from './articulateHelpers';
 import { success, failure } from '../../common/API_Responses';
 import * as dynamoDbLib from '../../common/dynamodb-lib';
-import { getCurrentGameData } from './articulateHelpers';
 import { getUser } from '../../common/user-db';
 import { send } from '../../common/websocketMessage';
 
 export async function main(event) {
   console.log('Event: ', event);
+
+  // get the json file from the s3 bucket
+  // update the session gameData with the raw data
+  // off to the races fam
 
   const eventBody = JSON.parse(event.body);
   const data = eventBody.data;
@@ -15,27 +19,17 @@ export async function main(event) {
   const GameData = sessionData.GameData;
   console.log('GameData: ', GameData);
 
-  const { connectionId } = event.requestContext;
-  const userData = await getUser(connectionId);
+  const dataRaw = await refreshDataSet();
+  const dataDecoded = dataRaw.Body.toString('utf-8');
+  console.log('data clean: ', dataDecoded);
+
+  const dataAsJson = JSON.parse(dataDecoded);
 
   const updatedGameData = {
     ...GameData,
     Articulate: {
       ...GameData.Articulate,
-      gameTeams: {
-        ...GameData.Articulate.gameTeams,
-        [data.teamSelected]: {
-          ...GameData.Articulate.gameTeams[data.teamSelected],
-          Players: [
-            ...GameData.Articulate.gameTeams[data.teamSelected].Players,
-            { ID: connectionId, Username: userData.Username },
-          ],
-          PlayersLeft: [
-            ...GameData.Articulate.gameTeams[data.teamSelected].PlayersLeft,
-            { ID: connectionId, Username: userData.Username },
-          ],
-        },
-      },
+      gameData: dataAsJson,
     },
   };
 
@@ -67,8 +61,8 @@ export async function main(event) {
         domainName,
         stage,
         connectionId: ID,
-        message: `[{"ID": "${connectionId}", "Username": "${userData.Username}", "Team": "${data.teamSelected}"}]`,
-        type: 'articulate_team_join',
+        message: `[{"gameData": ${JSON.stringify(updatedGameData)}}]`,
+        type: 'articulate_data_reset',
       });
     }
 

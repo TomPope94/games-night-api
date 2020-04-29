@@ -15,27 +15,11 @@ export async function main(event) {
   const GameData = sessionData.GameData;
   console.log('GameData: ', GameData);
 
-  const { connectionId } = event.requestContext;
-  const userData = await getUser(connectionId);
-
   const updatedGameData = {
     ...GameData,
     Articulate: {
       ...GameData.Articulate,
-      gameTeams: {
-        ...GameData.Articulate.gameTeams,
-        [data.teamSelected]: {
-          ...GameData.Articulate.gameTeams[data.teamSelected],
-          Players: [
-            ...GameData.Articulate.gameTeams[data.teamSelected].Players,
-            { ID: connectionId, Username: userData.Username },
-          ],
-          PlayersLeft: [
-            ...GameData.Articulate.gameTeams[data.teamSelected].PlayersLeft,
-            { ID: connectionId, Username: userData.Username },
-          ],
-        },
-      },
+      roundStart: true,
     },
   };
 
@@ -67,8 +51,8 @@ export async function main(event) {
         domainName,
         stage,
         connectionId: ID,
-        message: `[{"ID": "${connectionId}", "Username": "${userData.Username}", "Team": "${data.teamSelected}"}]`,
-        type: 'articulate_team_join',
+        message: 'Start the round!',
+        type: 'articulate_start_round',
       });
     }
 
