@@ -65,6 +65,11 @@ functions:
     events:
       - websocket:
           route: joinsession
+  websocket-ping:
+    handler: lambdas/websockets/ping.main
+    events:
+      - websocket:
+          route: ping
   ##################### Articulate Routes ##########################
   articulate-teamselect:
     handler: lambdas/websockets/articulate/teamSelect.main
@@ -106,6 +111,11 @@ functions:
     events:
       - websocket:
           route: articulatetosummary
+  articulate-endGame:
+    handler: lambdas/websockets/articulate/endGame.main
+    events:
+      - websocket:
+          route: articulateendgame
 # # Create our resources with separate CloudFormation templates
 resources:
   # API Gateway Errors

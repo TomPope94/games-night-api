@@ -101,6 +101,66 @@ export const deleteFromSession = async (sessionId, connectionId) => {
   const sessionData = await getConnectedUsers(sessionId);
   console.log('SessionData: ', sessionData);
   const connectedUsers = sessionData.UserList;
+  const GameData = sessionData.GameData;
+
+  const updatedGameData = {
+    ...GameData,
+    Articulate: {
+      ...GameData.Articulate,
+      gameTeams: {
+        ...GameData.Articulate.gameTeams,
+        Red: {
+          ...GameData.Articulate.gameTeams.Red,
+          Players: GameData.Articulate.gameTeams.Red.Players.filter(
+            (player) => player.ID !== connectionId
+          ),
+          PlayersLeft: GameData.Articulate.gameTeams.Red.PlayersLeft.filter(
+            (player) => player.ID !== connectionId
+          ),
+          PlayersGone: GameData.Articulate.gameTeams.Red.PlayersGone.filter(
+            (player) => player.ID !== connectionId
+          ),
+        },
+        Blue: {
+          ...GameData.Articulate.gameTeams.Blue,
+          Players: GameData.Articulate.gameTeams.Blue.Players.filter(
+            (player) => player.ID !== connectionId
+          ),
+          PlayersLeft: GameData.Articulate.gameTeams.Blue.PlayersLeft.filter(
+            (player) => player.ID !== connectionId
+          ),
+          PlayersGone: GameData.Articulate.gameTeams.Blue.PlayersGone.filter(
+            (player) => player.ID !== connectionId
+          ),
+        },
+        Orange: {
+          ...GameData.Articulate.gameTeams.Orange,
+          Players: GameData.Articulate.gameTeams.Orange.Players.filter(
+            (player) => player.ID !== connectionId
+          ),
+          PlayersLeft: GameData.Articulate.gameTeams.Orange.PlayersLeft.filter(
+            (player) => player.ID !== connectionId
+          ),
+          PlayersGone: GameData.Articulate.gameTeams.Orange.PlayersGone.filter(
+            (player) => player.ID !== connectionId
+          ),
+        },
+        Green: {
+          ...GameData.Articulate.gameTeams.Green,
+          Players: GameData.Articulate.gameTeams.Green.Players.filter(
+            (player) => player.ID !== connectionId
+          ),
+          PlayersLeft: GameData.Articulate.gameTeams.Green.PlayersLeft.filter(
+            (player) => player.ID !== connectionId
+          ),
+          PlayersGone: GameData.Articulate.gameTeams.Green.PlayersGone.filter(
+            (player) => player.ID !== connectionId
+          ),
+        },
+      },
+    },
+  };
+
   console.log('Connected users: ', connectedUsers);
   const newUserList = connectedUsers.filter((user) => user.ID !== connectionId);
   console.log('New User list: ', newUserList);
@@ -110,14 +170,17 @@ export const deleteFromSession = async (sessionId, connectionId) => {
     Key: {
       SessionId: sessionId,
     },
-    UpdateExpression: 'SET UserList = :ul',
+    UpdateExpression: 'SET UserList = :ul, GameData = :gd',
     ExpressionAttributeValues: {
       ':ul': newUserList,
+      ':gd': updatedGameData,
     },
   };
 
   try {
     await dynamoDbLib.call('update', params);
+
+    return updatedGameData;
   } catch (e) {
     console.error(e);
   }

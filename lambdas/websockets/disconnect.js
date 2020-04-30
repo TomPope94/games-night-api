@@ -18,8 +18,9 @@ export async function main(event) {
   const sessionId = userData.GameSessionID;
 
   try {
+    let updatedData;
     if (sessionId !== 'NA') {
-      await deleteFromSession(sessionId, connectionId);
+      updatedData = await deleteFromSession(sessionId, connectionId);
     }
     await deleteUser(connectionId);
 
@@ -36,7 +37,9 @@ export async function main(event) {
         domainName,
         stage,
         connectionId: ID,
-        message: `[{"ID": "${connectionId}", "Username": "${userData.Username}"}]`,
+        message: `[{"ID": "${connectionId}", "Username": "${
+          userData.Username
+        }", "Data": ${JSON.stringify(updatedData)}}]`,
         type: 'player_left',
       });
     }
