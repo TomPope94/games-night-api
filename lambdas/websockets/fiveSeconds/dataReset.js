@@ -1,4 +1,7 @@
-import { getCurrentGameData, refreshDataSet } from './articulateHelpers';
+import {
+  getCurrentGameData,
+  refreshDataSet,
+} from '../articulate/articulateHelpers';
 import { success, failure } from '../../common/API_Responses';
 import * as dynamoDbLib from '../../common/dynamodb-lib';
 import { getUser } from '../../common/user-db';
@@ -19,7 +22,7 @@ export async function main(event) {
   const GameData = sessionData.GameData;
   console.log('GameData: ', GameData);
 
-  const dataRaw = await refreshDataSet('Articulate/ArticulateData.json');
+  const dataRaw = await refreshDataSet('FiveSecondRule/FiveSecondData.json');
   const dataDecoded = dataRaw.Body.toString('utf-8');
   console.log('data clean: ', dataDecoded);
 
@@ -27,8 +30,8 @@ export async function main(event) {
 
   const updatedGameData = {
     ...GameData,
-    Articulate: {
-      ...GameData.Articulate,
+    FiveSeconds: {
+      ...GameData.FiveSeconds,
       gameData: dataAsJson,
     },
   };
@@ -62,7 +65,7 @@ export async function main(event) {
         stage,
         connectionId: ID,
         message: `[{"gameData": ${JSON.stringify(updatedGameData)}}]`,
-        type: 'articulate_data_reset',
+        type: 'fiveseconds_data_reset',
       });
     }
 

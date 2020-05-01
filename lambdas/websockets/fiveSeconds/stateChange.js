@@ -1,15 +1,11 @@
-import { getCurrentGameData, refreshDataSet } from './articulateHelpers';
 import { success, failure } from '../../common/API_Responses';
 import * as dynamoDbLib from '../../common/dynamodb-lib';
+import { getCurrentGameData } from '../articulate/articulateHelpers';
 import { getUser } from '../../common/user-db';
 import { send } from '../../common/websocketMessage';
 
 export async function main(event) {
   console.log('Event: ', event);
-
-  // get the json file from the s3 bucket
-  // update the session gameData with the raw data
-  // off to the races fam
 
   const eventBody = JSON.parse(event.body);
   const data = eventBody.data;
@@ -19,17 +15,31 @@ export async function main(event) {
   const GameData = sessionData.GameData;
   console.log('GameData: ', GameData);
 
-  const dataRaw = await refreshDataSet('Articulate/ArticulateData.json');
-  const dataDecoded = dataRaw.Body.toString('utf-8');
-  console.log('data clean: ', dataDecoded);
+  const startMove = !GameData.FiveSeconds.gameStarted; // game started inits as false so this will return true which means the action is to start the game
+  // start move is needed to know if we need to calculate the starting team...
 
-  const dataAsJson = JSON.parse(dataDecoded);
+  const numPlayers = GameData.FiveSeconds.players.length;
+  const firstPlayerIndex = Math.floor(Math.random() * numPlayers);
 
   const updatedGameData = {
     ...GameData,
-    Articulate: {
-      ...GameData.Articulate,
-      gameData: dataAsJson,
+    FiveSeconds: {
+      ...GameData.FiveSeconds,
+      roundComplete: false,
+      roundStart: false,
+      gameStarted: true,
+      gameState: data.state,
+      gameStarter: startMove
+        ? firstPlayerIndex
+        : GameData.FiveSeconds.gameStarter,
+      players: GameData.FiveSeconds.players.map((player) => {
+        return {
+          ...player,
+          lives: GameData.FiveSeconds.numLives,
+          completed: false,
+        };
+      }),
+      gameRound: GameData.FiveSeconds.gameRound + 1,
     },
   };
 
@@ -61,8 +71,10 @@ export async function main(event) {
         domainName,
         stage,
         connectionId: ID,
-        message: `[{"gameData": ${JSON.stringify(updatedGameData)}}]`,
-        type: 'articulate_data_reset',
+        message: `[{"gameData": ${JSON.stringify(
+          updatedGameData
+        )}, "startMove": "${startMove}"}]`,
+        type: 'fiveseconds_state_change',
       });
     }
 

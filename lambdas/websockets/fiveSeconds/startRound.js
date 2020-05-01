@@ -1,15 +1,11 @@
-import { getCurrentGameData, refreshDataSet } from './articulateHelpers';
 import { success, failure } from '../../common/API_Responses';
 import * as dynamoDbLib from '../../common/dynamodb-lib';
+import { getCurrentGameData } from '../articulate/articulateHelpers';
 import { getUser } from '../../common/user-db';
 import { send } from '../../common/websocketMessage';
 
 export async function main(event) {
   console.log('Event: ', event);
-
-  // get the json file from the s3 bucket
-  // update the session gameData with the raw data
-  // off to the races fam
 
   const eventBody = JSON.parse(event.body);
   const data = eventBody.data;
@@ -19,17 +15,32 @@ export async function main(event) {
   const GameData = sessionData.GameData;
   console.log('GameData: ', GameData);
 
-  const dataRaw = await refreshDataSet('Articulate/ArticulateData.json');
-  const dataDecoded = dataRaw.Body.toString('utf-8');
-  console.log('data clean: ', dataDecoded);
+  // get next player
+  const livePlayers = GameData.FiveSeconds.players.filter(
+    (player) => player.lives > 0
+  );
+  const randNum = Math.floor(Math.random() * livePlayers.length);
+  const nextPlayer = livePlayers[randNum];
 
-  const dataAsJson = JSON.parse(dataDecoded);
+  //update players with completed: false
 
   const updatedGameData = {
     ...GameData,
-    Articulate: {
-      ...GameData.Articulate,
-      gameData: dataAsJson,
+    FiveSeconds: {
+      ...GameData.FiveSeconds,
+      roundStart: true,
+      roundComplete: false,
+      roundRoundStarted: true,
+      roundRoundComplete: false,
+      gameRound: data.gameRound,
+      playerTurn: nextPlayer,
+      players: GameData.FiveSeconds.players.map((player) => {
+        return {
+          ...player,
+          completed: false,
+        };
+      }),
+      gameQuestion: data.gameQuestion,
     },
   };
 
@@ -61,8 +72,12 @@ export async function main(event) {
         domainName,
         stage,
         connectionId: ID,
-        message: `[{"gameData": ${JSON.stringify(updatedGameData)}}]`,
-        type: 'articulate_data_reset',
+        message: `[{"nextPlayer": ${JSON.stringify(
+          nextPlayer
+        )}, "gameQuestion": "${
+          data.gameQuestion
+        }", "gameData": ${JSON.stringify(updatedGameData)}}]`,
+        type: 'fiveseconds_start_round',
       });
     }
 

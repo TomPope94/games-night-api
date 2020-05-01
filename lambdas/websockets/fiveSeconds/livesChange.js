@@ -1,15 +1,11 @@
-import { getCurrentGameData, refreshDataSet } from './articulateHelpers';
 import { success, failure } from '../../common/API_Responses';
 import * as dynamoDbLib from '../../common/dynamodb-lib';
+import { getCurrentGameData } from '../articulate/articulateHelpers';
 import { getUser } from '../../common/user-db';
 import { send } from '../../common/websocketMessage';
 
 export async function main(event) {
   console.log('Event: ', event);
-
-  // get the json file from the s3 bucket
-  // update the session gameData with the raw data
-  // off to the races fam
 
   const eventBody = JSON.parse(event.body);
   const data = eventBody.data;
@@ -19,17 +15,11 @@ export async function main(event) {
   const GameData = sessionData.GameData;
   console.log('GameData: ', GameData);
 
-  const dataRaw = await refreshDataSet('Articulate/ArticulateData.json');
-  const dataDecoded = dataRaw.Body.toString('utf-8');
-  console.log('data clean: ', dataDecoded);
-
-  const dataAsJson = JSON.parse(dataDecoded);
-
   const updatedGameData = {
     ...GameData,
-    Articulate: {
-      ...GameData.Articulate,
-      gameData: dataAsJson,
+    FiveSeconds: {
+      ...GameData.FiveSeconds,
+      numLives: data.lives,
     },
   };
 
@@ -61,8 +51,8 @@ export async function main(event) {
         domainName,
         stage,
         connectionId: ID,
-        message: `[{"gameData": ${JSON.stringify(updatedGameData)}}]`,
-        type: 'articulate_data_reset',
+        message: `[{"lives": ${data.lives}}]`,
+        type: 'fiveseconds_lives_change',
       });
     }
 

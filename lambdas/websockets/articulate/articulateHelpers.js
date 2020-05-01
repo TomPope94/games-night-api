@@ -22,13 +22,13 @@ export const getCurrentGameData = async (sessionId) => {
   }
 };
 
-export const refreshDataSet = async () => {
+export const refreshDataSet = async (location) => {
   const s3 = new AWS.S3();
 
   const datasets = await s3
     .getObject({
       Bucket: process.env.s3BucketName,
-      Key: 'Articulate/ArticulateData.json',
+      Key: location,
     })
     .promise();
 

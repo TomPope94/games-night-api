@@ -116,6 +116,52 @@ functions:
     events:
       - websocket:
           route: articulateendgame
+  ##################### Five Second Rule Routes ##########################
+  fiveseconds-playerJoin:
+    handler: lambdas/websockets/fiveSeconds/playerJoin.main
+    events:
+      - websocket:
+          route: fivesecondsplayerjoin
+  fiveSeconds-livesChange:
+    handler: lambdas/websockets/fiveSeconds/livesChange.main
+    events:
+      - websocket:
+          route: fivesecondsliveschange
+  fiveSeconds-dataReset:
+    handler: lambdas/websockets/fiveSeconds/dataReset.main
+    events:
+      - websocket:
+          route: fivesecondsdatareset
+  fiveSeconds-stateChange:
+    handler: lambdas/websockets/fiveSeconds/stateChange.main
+    events:
+      - websocket:
+          route: fivesecondsstatechange
+  fiveSeconds-endGame:
+    handler: lambdas/websockets/fiveSeconds/endGame.main
+    events:
+      - websocket:
+          route: fivesecondsendgame
+  fiveSeconds-startRound:
+    handler: lambdas/websockets/fiveSeconds/startRound.main
+    events:
+      - websocket:
+          route: fivesecondstartround
+  fiveSeconds-endQuestion:
+    handler: lambdas/websockets/fiveSeconds/endQuestion.main
+    events:
+      - websocket:
+          route: fivesecondendquestion
+  fiveSeconds-vote:
+    handler: lambdas/websockets/fiveSeconds/vote.main
+    events:
+      - websocket:
+          route: fivesecondvote
+  fiveSeconds-result:
+    handler: lambdas/websockets/fiveSeconds/result.main
+    events:
+      - websocket:
+          route: fivesecondresult
 # # Create our resources with separate CloudFormation templates
 resources:
   # API Gateway Errors
