@@ -1,6 +1,6 @@
 import { success, failure } from '../../common/API_Responses';
 import * as dynamoDbLib from '../../common/dynamodb-lib';
-import { getCurrentGameData } from './articulateHelpers';
+import { getCurrentGameData } from '../../articulate/lambdas/articulateHelpers';
 import { getUser } from '../../common/user-db';
 import { send } from '../../common/websocketMessage';
 
@@ -15,13 +15,50 @@ export async function main(event) {
   const GameData = sessionData.GameData;
   console.log('GameData: ', GameData);
 
+  //check to see if there is anything in namesInPlay (if no, make it equal to gameData)
+  const checkNames = GameData.GuessPeople.namesInPlay.length <= 0;
+
+  const rounds = ['Articulate', 'Charades', 'One Word'];
+  const newModeNum = checkNames
+    ? GameData.GuessPeople.modeRound + 1
+    : GameData.GuessPeople.modeRound;
+  const newRoundMode = rounds[newModeNum];
+
+  //check to see if the player pools need refreshing
+  const checkPools = data.refreshPools;
+  const newPools = {
+    Red: { ...GameData.GuessPeople.gameTeams.Red },
+    Blue: { ...GameData.GuessPeople.gameTeams.Blue },
+    Orange: { ...GameData.GuessPeople.gameTeams.Orange },
+    Green: { ...GameData.GuessPeople.gameTeams.Green },
+  };
+  if (checkPools) {
+    for (let [key, value] of Object.entries(GameData.GuessPeople.gameTeams)) {
+      console.log('Key:', key);
+      console.log('Val:', value);
+      newPools[key] = {
+        ...value,
+        PlayersLeft: [...value.PlayersGone],
+        PlayersGone: [],
+      };
+    }
+  }
+
+  console.log('New Pools:', JSON.stringify(newPools));
+
   const updatedGameData = {
     ...GameData,
-    Articulate: {
-      ...GameData.Articulate,
+    GuessPeople: {
+      ...GameData.GuessPeople,
       gameState: 'RoundInProgress',
       teamTurn: data.team,
       playerTurn: data.player,
+      modeRound: newModeNum,
+      gameMode: newRoundMode,
+      namesInPlay: checkNames
+        ? [...GameData.GuessPeople.gameData]
+        : [...GameData.GuessPeople.namesInPlay],
+      gameTeams: { ...newPools },
     },
   };
 
@@ -54,8 +91,10 @@ export async function main(event) {
         domainName,
         stage,
         connectionId: ID,
-        message: `[{"gameState": "RoundInProgress", "team": "${data.team}", "player": "${data.player.Username}", "yourTurn": false}]`,
-        type: 'articulate_next_round',
+        message: `[{"gameState": "RoundInProgress", "data": ${JSON.stringify(
+          updatedGameData
+        )}, "yourTurn": false}]`,
+        type: 'guesspeople_next_round',
       });
     }
 
@@ -64,8 +103,10 @@ export async function main(event) {
       domainName: turnPlayer.domainName,
       stage: turnPlayer.stage,
       connectionId: turnPlayer.ID,
-      message: `[{"gameState": "RoundInProgress", "team": "${data.team}", "player": "${data.player.Username}", "yourTurn": true}]`,
-      type: 'articulate_next_round',
+      message: `[{"gameState": "RoundInProgress", "data": ${JSON.stringify(
+        updatedGameData
+      )}, "yourTurn": true}]`,
+      type: 'guesspeople_next_round',
     });
 
     return success({ message: 'connected' });

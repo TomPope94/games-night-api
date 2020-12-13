@@ -20,8 +20,13 @@ export async function main(event) {
   };
 
   const { connectionId, domainName, stage } = event.requestContext;
-
   const userData = await getUser(connectionId);
+  const messages = [
+    {
+      Username: '_Server_',
+      Message: `${userData.Username} has started the server!`,
+    },
+  ];
 
   const sessionId = makeid(6);
   const params = {
@@ -38,6 +43,7 @@ export async function main(event) {
           Username: userData.Username,
         },
       ],
+      MessageList: messages,
       GameData: { ...initGameState },
     },
   };
@@ -52,7 +58,9 @@ export async function main(event) {
       connectionId,
       message: `[{"SessionID": "${sessionId}", "Players": [{"ID": "${connectionId}", "Username": "${
         userData.Username
-      }"}], "GameData": ${JSON.stringify(initGameState)}}]`,
+      }"}], "GameData": ${JSON.stringify(
+        initGameState
+      )}, "Messages": ${JSON.stringify(messages)}}]`,
       type: 'host',
     });
     console.log('sent a reply message!');

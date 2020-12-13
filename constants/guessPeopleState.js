@@ -1,0 +1,42 @@
+export const initGuessPeople = {
+  gameStarted: false,
+  gameStarter: -1,
+  gameRound: -1,
+  roundScore: 0,
+  roundComplete: false,
+  roundStart: false,
+  wordsPassed: [],
+  wordsCorrect: [],
+  modeRound: -1,
+  gameMode: 'Articulate',
+  gameState: 'setup',
+  numPlayers: 0,
+  gameTeams: {
+    Red: {
+      Pos: 0,
+      Players: [],
+      PlayersGone: [],
+      PlayersLeft: [],
+    },
+    Blue: {
+      Pos: 0,
+      Players: [],
+      PlayersGone: [],
+      PlayersLeft: [],
+    },
+    Orange: {
+      Pos: 0,
+      Players: [],
+      PlayersGone: [],
+      PlayersLeft: [],
+    },
+    Green: {
+      Pos: 0,
+      Players: [],
+      PlayersGone: [],
+      PlayersLeft: [],
+    },
+  },
+  gameData: [],
+  namesInPlay: [],
+};

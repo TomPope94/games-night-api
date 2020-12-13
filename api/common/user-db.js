@@ -96,23 +96,12 @@ export const deleteUser = async (connectionId) => {
   }
 };
 
-export const deleteFromSession = async (sessionId, userData) => {
-  const { Username, ID } = userData;
-  const connectionId = ID;
-
+export const deleteFromSession = async (sessionId, connectionId) => {
   console.log('Session ID: ', sessionId);
   const sessionData = await getConnectedUsers(sessionId);
   console.log('SessionData: ', sessionData);
   const connectedUsers = sessionData.UserList;
   const GameData = sessionData.GameData;
-  const messages = sessionData.MessageList;
-  const updatedMessages = [
-    ...messages,
-    {
-      Username: '_Server_',
-      Message: `${Username} has left the game!`,
-    },
-  ];
 
   const updatedGameData = {
     ...GameData,
@@ -181,18 +170,17 @@ export const deleteFromSession = async (sessionId, userData) => {
     Key: {
       SessionId: sessionId,
     },
-    UpdateExpression: 'SET UserList = :ul, GameData = :gd, MessageList = :ml',
+    UpdateExpression: 'SET UserList = :ul, GameData = :gd',
     ExpressionAttributeValues: {
       ':ul': newUserList,
       ':gd': updatedGameData,
-      ':ml': updatedMessages,
     },
   };
 
   try {
     await dynamoDbLib.call('update', params);
 
-    return { gameData: updatedGameData, messageList: updatedMessages };
+    return updatedGameData;
   } catch (e) {
     console.error(e);
   }

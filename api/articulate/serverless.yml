@@ -1,0 +1,84 @@
+service: games-night-api-articulate
+package:
+  individually: true
+
+plugins:
+  - serverless-bundle # Package our functions with Webpack
+  - serverless-offline
+  - serverless-dotenv-plugin # Load .env as environment variables
+provider:
+  name: aws
+  runtime: nodejs12.x
+  stage: prod
+  apiGateway:
+    websocketApiId: bq7auya367
+  region: eu-west-1
+  environment:
+    usersTableName: GamesNightUsers
+    sessionsTableName: GamesNightSessions
+    s3BucketName: games-night-data
+  iamRoleStatements:
+    - Effect: 'Allow'
+      Action:
+        - dynamodb:DescribeTable
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: 'arn:aws:dynamodb:eu-west-1:*:*'
+    - Effect: 'Allow'
+      Action: '*'
+      Resource: 'arn:aws:s3:::games-night-data/*'
+    - Effect: 'Allow'
+      Action: '*'
+      Resource: 'arn:aws:execute-api:eu-west-1:*:*'
+
+  ##################### Articulate Routes ##########################
+functions:
+  articulate-teamselect:
+    handler: lambdas/teamSelect.main
+    events:
+      - websocket:
+          route: articulateteamselect
+  articulate-statechange:
+    handler: lambdas/stateChange.main
+    events:
+      - websocket:
+          route: articulatestatechange
+  articulate-modechange:
+    handler: lambdas/modeChange.main
+    events:
+      - websocket:
+          route: articulatemodechange
+  articulate-getData:
+    handler: lambdas/getData.main
+    events:
+      - websocket:
+          route: articulatedatafetch
+  articulate-nextRound:
+    handler: lambdas/nextRound.main
+    events:
+      - websocket:
+          route: articulatenextround
+  articulate-startRound:
+    handler: lambdas/startRound.main
+    events:
+      - websocket:
+          route: articulateroundstart
+  articulate-scoreUpdate:
+    handler: lambdas/scoreUpdate.main
+    events:
+      - websocket:
+          route: articulatescoreupdate
+  articulate-toSummary:
+    handler: lambdas/toSummary.main
+    events:
+      - websocket:
+          route: articulatetosummary
+  articulate-endGame:
+    handler: lambdas/endGame.main
+    events:
+      - websocket:
+          route: articulateendgame

@@ -1,6 +1,6 @@
 import { success, failure } from '../../common/API_Responses';
 import * as dynamoDbLib from '../../common/dynamodb-lib';
-import { getCurrentGameData } from '../articulate/articulateHelpers';
+import { getCurrentGameData } from '../../articulate/lambdas/articulateHelpers';
 import { getUser } from '../../common/user-db';
 import { send } from '../../common/websocketMessage';
 
@@ -19,12 +19,7 @@ export async function main(event) {
     ...GameData,
     FiveSeconds: {
       ...GameData.FiveSeconds,
-      pass: data.vote
-        ? GameData.FiveSeconds.pass + 1
-        : GameData.FiveSeconds.pass,
-      fail: data.vote
-        ? GameData.FiveSeconds.fail
-        : GameData.FiveSeconds.fail + 1,
+      roundRoundComplete: true,
     },
   };
 
@@ -56,8 +51,8 @@ export async function main(event) {
         domainName,
         stage,
         connectionId: ID,
-        message: `[{"passes": ${updatedGameData.FiveSeconds.pass}, "fails": ${updatedGameData.FiveSeconds.fail}}]`,
-        type: 'fiveseconds_vote',
+        message: 'To the votes!',
+        type: 'fiveseconds_end_question',
       });
     }
 

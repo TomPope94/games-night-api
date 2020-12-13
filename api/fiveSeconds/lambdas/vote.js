@@ -1,6 +1,6 @@
 import { success, failure } from '../../common/API_Responses';
 import * as dynamoDbLib from '../../common/dynamodb-lib';
-import { getCurrentGameData } from '../articulate/articulateHelpers';
+import { getCurrentGameData } from '../../articulate/lambdas/articulateHelpers';
 import { getUser } from '../../common/user-db';
 import { send } from '../../common/websocketMessage';
 
@@ -15,17 +15,16 @@ export async function main(event) {
   const GameData = sessionData.GameData;
   console.log('GameData: ', GameData);
 
-  const { connectionId } = event.requestContext;
-  const userData = await getUser(connectionId);
-
   const updatedGameData = {
     ...GameData,
     FiveSeconds: {
       ...GameData.FiveSeconds,
-      players: [
-        ...GameData.FiveSeconds.players,
-        { ID: connectionId, Username: userData.Username },
-      ],
+      pass: data.vote
+        ? GameData.FiveSeconds.pass + 1
+        : GameData.FiveSeconds.pass,
+      fail: data.vote
+        ? GameData.FiveSeconds.fail
+        : GameData.FiveSeconds.fail + 1,
     },
   };
 
@@ -57,8 +56,8 @@ export async function main(event) {
         domainName,
         stage,
         connectionId: ID,
-        message: `[{"ID": "${connectionId}", "Username": "${userData.Username}"}]`,
-        type: 'fiveseconds_join',
+        message: `[{"passes": ${updatedGameData.FiveSeconds.pass}, "fails": ${updatedGameData.FiveSeconds.fail}}]`,
+        type: 'fiveseconds_vote',
       });
     }
 

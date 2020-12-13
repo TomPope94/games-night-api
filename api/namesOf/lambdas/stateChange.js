@@ -1,6 +1,6 @@
 import { success, failure } from '../../common/API_Responses';
 import * as dynamoDbLib from '../../common/dynamodb-lib';
-import { getCurrentGameData } from '../articulate/articulateHelpers';
+import { getCurrentGameData } from '../../articulate/lambdas/articulateHelpers';
 import { getUser } from '../../common/user-db';
 import { send } from '../../common/websocketMessage';
 
@@ -15,11 +15,24 @@ export async function main(event) {
   const GameData = sessionData.GameData;
   console.log('GameData: ', GameData);
 
+  const { connectionId } = event.requestContext;
+  const userData = await getUser(connectionId);
+
   const updatedGameData = {
     ...GameData,
-    FiveSeconds: {
-      ...GameData.FiveSeconds,
-      roundRoundComplete: true,
+    NamesOf: {
+      ...GameData.NamesOf,
+      roundComplete: false,
+      roundStarted: false,
+      gameState: data.state,
+      master: { Username: userData.Username, ID: userData.ID },
+      players: GameData.NamesOf.players.map((player) => {
+        return {
+          ...player,
+          inPool: true,
+        };
+      }),
+      gameRound: GameData.NamesOf.gameRound + 1,
     },
   };
 
@@ -39,7 +52,9 @@ export async function main(event) {
   try {
     await dynamoDbLib.call('update', params);
 
-    const userList = sessionData.UserList;
+    const userList = sessionData.UserList.filter(
+      (user) => user.ID !== connectionId
+    );
 
     for (let i = 0; i < userList.length; i++) {
       const player = await getUser(userList[i].ID);
@@ -51,10 +66,20 @@ export async function main(event) {
         domainName,
         stage,
         connectionId: ID,
-        message: 'To the votes!',
-        type: 'fiveseconds_end_question',
+        message: `[{"Data": ${JSON.stringify(
+          updatedGameData
+        )}, "Master": false}]`,
+        type: 'namesof_state_change',
       });
     }
+
+    await send({
+      domainName: userData.domainName,
+      stage: userData.stage,
+      connectionId,
+      message: `[{"Data": ${JSON.stringify(updatedGameData)}, "Master": true}]`,
+      type: 'namesof_state_change',
+    });
 
     return success({ message: 'connected' });
   } catch (e) {

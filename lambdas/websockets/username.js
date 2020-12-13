@@ -23,6 +23,16 @@ export async function main(event) {
 
   try {
     await dynamoDbLib.call('update', params);
+    console.log(
+      'Sending: ',
+      JSON.stringify({
+        domainName,
+        stage,
+        connectionId,
+        message: body.data,
+        type: 'username',
+      })
+    );
     await send({
       domainName,
       stage,

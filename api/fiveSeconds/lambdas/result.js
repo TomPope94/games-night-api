@@ -1,6 +1,6 @@
 import { success, failure } from '../../common/API_Responses';
 import * as dynamoDbLib from '../../common/dynamodb-lib';
-import { getCurrentGameData } from '../articulate/articulateHelpers';
+import { getCurrentGameData } from '../../articulate/lambdas/articulateHelpers';
 import { getUser } from '../../common/user-db';
 import { send } from '../../common/websocketMessage';
 

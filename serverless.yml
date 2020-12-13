@@ -7,11 +7,21 @@ plugins:
   - serverless-bundle # Package our functions with Webpack
   - serverless-offline
   - serverless-dotenv-plugin # Load .env as environment variables
+  # - serverless-domain-manager
+
+# custom:
+#   customDomain:
+#     domainName: api.ccgaming.co.uk
+#     certificateName: '*.ccgaming.co.uk'
+#     stage: prod
+#     createRoute53Record: true
 
 provider:
   name: aws
   runtime: nodejs12.x
   stage: prod
+  # apiGateway:
+  # websocketApiId: sutjgw54hc
   region: eu-west-1
   environment:
     usersTableName: GamesNightUsers
@@ -70,98 +80,7 @@ functions:
     events:
       - websocket:
           route: ping
-  ##################### Articulate Routes ##########################
-  articulate-teamselect:
-    handler: lambdas/websockets/articulate/teamSelect.main
-    events:
-      - websocket:
-          route: articulateteamselect
-  articulate-statechange:
-    handler: lambdas/websockets/articulate/stateChange.main
-    events:
-      - websocket:
-          route: articulatestatechange
-  articulate-modechange:
-    handler: lambdas/websockets/articulate/modeChange.main
-    events:
-      - websocket:
-          route: articulatemodechange
-  articulate-getData:
-    handler: lambdas/websockets/articulate/getData.main
-    events:
-      - websocket:
-          route: articulatedatafetch
-  articulate-nextRound:
-    handler: lambdas/websockets/articulate/nextRound.main
-    events:
-      - websocket:
-          route: articulatenextround
-  articulate-startRound:
-    handler: lambdas/websockets/articulate/startRound.main
-    events:
-      - websocket:
-          route: articulateroundstart
-  articulate-scoreUpdate:
-    handler: lambdas/websockets/articulate/scoreUpdate.main
-    events:
-      - websocket:
-          route: articulatescoreupdate
-  articulate-toSummary:
-    handler: lambdas/websockets/articulate/toSummary.main
-    events:
-      - websocket:
-          route: articulatetosummary
-  articulate-endGame:
-    handler: lambdas/websockets/articulate/endGame.main
-    events:
-      - websocket:
-          route: articulateendgame
-  ##################### Five Second Rule Routes ##########################
-  fiveseconds-playerJoin:
-    handler: lambdas/websockets/fiveSeconds/playerJoin.main
-    events:
-      - websocket:
-          route: fivesecondsplayerjoin
-  fiveSeconds-livesChange:
-    handler: lambdas/websockets/fiveSeconds/livesChange.main
-    events:
-      - websocket:
-          route: fivesecondsliveschange
-  fiveSeconds-dataReset:
-    handler: lambdas/websockets/fiveSeconds/dataReset.main
-    events:
-      - websocket:
-          route: fivesecondsdatareset
-  fiveSeconds-stateChange:
-    handler: lambdas/websockets/fiveSeconds/stateChange.main
-    events:
-      - websocket:
-          route: fivesecondsstatechange
-  fiveSeconds-endGame:
-    handler: lambdas/websockets/fiveSeconds/endGame.main
-    events:
-      - websocket:
-          route: fivesecondsendgame
-  fiveSeconds-startRound:
-    handler: lambdas/websockets/fiveSeconds/startRound.main
-    events:
-      - websocket:
-          route: fivesecondstartround
-  fiveSeconds-endQuestion:
-    handler: lambdas/websockets/fiveSeconds/endQuestion.main
-    events:
-      - websocket:
-          route: fivesecondendquestion
-  fiveSeconds-vote:
-    handler: lambdas/websockets/fiveSeconds/vote.main
-    events:
-      - websocket:
-          route: fivesecondvote
-  fiveSeconds-result:
-    handler: lambdas/websockets/fiveSeconds/result.main
-    events:
-      - websocket:
-          route: fivesecondresult
+
 # # Create our resources with separate CloudFormation templates
 resources:
   # API Gateway Errors

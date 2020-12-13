@@ -1,9 +1,8 @@
 import { success, failure } from '../../common/API_Responses';
 import * as dynamoDbLib from '../../common/dynamodb-lib';
-import { getCurrentGameData } from '../articulate/articulateHelpers';
+import { getCurrentGameData } from '../../articulate/lambdas/articulateHelpers';
 import { getUser } from '../../common/user-db';
 import { send } from '../../common/websocketMessage';
-import { initFiveSeconds } from '../../../constants/fiveSecondsState';
 
 export async function main(event) {
   console.log('Event: ', event);
@@ -19,12 +18,10 @@ export async function main(event) {
   const updatedGameData = {
     ...GameData,
     FiveSeconds: {
-      ...initFiveSeconds,
-      gameData: GameData.FiveSeconds.gameData,
+      ...GameData.FiveSeconds,
+      numLives: data.lives,
     },
   };
-  const objStr = JSON.stringify(updatedGameData);
-  console.log('UPDATED DATA: ', objStr);
 
   const params = {
     TableName: process.env.sessionsTableName,
@@ -54,8 +51,8 @@ export async function main(event) {
         domainName,
         stage,
         connectionId: ID,
-        message: `[{"Data": ${JSON.stringify(updatedGameData)}}]`,
-        type: 'fiveseconds_end_game',
+        message: `[{"lives": ${data.lives}}]`,
+        type: 'fiveseconds_lives_change',
       });
     }
 

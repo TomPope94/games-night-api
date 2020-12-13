@@ -1,6 +1,6 @@
 import { success, failure } from '../../common/API_Responses';
 import * as dynamoDbLib from '../../common/dynamodb-lib';
-import { getCurrentGameData } from '../articulate/articulateHelpers';
+import { getCurrentGameData } from '../../articulate/lambdas/articulateHelpers';
 import { getUser } from '../../common/user-db';
 import { send } from '../../common/websocketMessage';
 
@@ -15,32 +15,17 @@ export async function main(event) {
   const GameData = sessionData.GameData;
   console.log('GameData: ', GameData);
 
-  // get next player
-  const livePlayers = GameData.FiveSeconds.players.filter(
-    (player) => player.lives > 0
-  );
-  const randNum = Math.floor(Math.random() * livePlayers.length);
-  const nextPlayer = livePlayers[randNum];
-
-  //update players with completed: false
+  const { connectionId } = event.requestContext;
+  const userData = await getUser(connectionId);
 
   const updatedGameData = {
     ...GameData,
-    FiveSeconds: {
-      ...GameData.FiveSeconds,
-      roundStart: true,
-      roundComplete: false,
-      roundRoundStarted: true,
-      roundRoundComplete: false,
-      gameRound: data.gameRound,
-      playerTurn: nextPlayer,
-      players: GameData.FiveSeconds.players.map((player) => {
-        return {
-          ...player,
-          completed: false,
-        };
-      }),
-      gameQuestion: data.gameQuestion,
+    NamesOf: {
+      ...GameData.NamesOf,
+      players: [
+        ...GameData.NamesOf.players,
+        { ID: connectionId, Username: userData.Username, inPool: true },
+      ],
     },
   };
 
@@ -72,12 +57,8 @@ export async function main(event) {
         domainName,
         stage,
         connectionId: ID,
-        message: `[{"nextPlayer": ${JSON.stringify(
-          nextPlayer
-        )}, "gameQuestion": "${
-          data.gameQuestion
-        }", "gameData": ${JSON.stringify(updatedGameData)}}]`,
-        type: 'fiveseconds_start_round',
+        message: `[{"ID": "${connectionId}", "Username": "${userData.Username}"}]`,
+        type: 'namesof_join',
       });
     }
 

@@ -1,0 +1,64 @@
+service: games-night-api-namesof
+package:
+  individually: true
+
+plugins:
+  - serverless-bundle # Package our functions with Webpack
+  - serverless-offline
+  - serverless-dotenv-plugin # Load .env as environment variables
+provider:
+  name: aws
+  runtime: nodejs12.x
+  stage: prod
+  apiGateway:
+    websocketApiId: bq7auya367
+  region: eu-west-1
+  environment:
+    usersTableName: GamesNightUsers
+    sessionsTableName: GamesNightSessions
+    s3BucketName: games-night-data
+  iamRoleStatements:
+    - Effect: 'Allow'
+      Action:
+        - dynamodb:DescribeTable
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: 'arn:aws:dynamodb:eu-west-1:*:*'
+    - Effect: 'Allow'
+      Action: '*'
+      Resource: 'arn:aws:s3:::games-night-data/*'
+    - Effect: 'Allow'
+      Action: '*'
+      Resource: 'arn:aws:execute-api:eu-west-1:*:*'
+
+######################## Names of, types of routes ###########################
+functions:
+  namesOf-playerJoin:
+    handler: lambdas/playerJoin.main
+    events:
+      - websocket:
+          route: namesofplayerjoin
+  namesOf-stateChange:
+    handler: lambdas/stateChange.main
+    events:
+      - websocket:
+          route: namesofstatechange
+  namesOf-endGame:
+    handler: lambdas/endGame.main
+    events:
+      - websocket:
+          route: namesofendgame
+  namesOf-startRound:
+    handler: lambdas/startRound.main
+    events:
+      - websocket:
+          route: namesofstartround
+  namesOf-verdict:
+    handler: lambdas/verdict.main
+    events:
+      - websocket:
+          route: namesofverdict

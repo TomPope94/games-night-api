@@ -13,13 +13,23 @@ export async function main(event) {
   const sessionData = await getConnectedUsers(body.data);
   const connectedUsers = sessionData.UserList;
   console.log('Connected Users: ', connectedUsers);
+  const messages = sessionData.MessageList;
+  console.log('messages: ', messages);
+  const newMessages = [
+    ...messages,
+    {
+      Username: '_Server_',
+      Message: `${userData.Username} has joined the game!`,
+    },
+  ];
+  console.log('new messages: ', newMessages);
 
   const params = {
     TableName: process.env.sessionsTableName,
     Key: {
       SessionId: body.data,
     },
-    UpdateExpression: 'SET UserList = :userArr',
+    UpdateExpression: 'SET UserList = :userArr, MessageList = :ml',
     ExpressionAttributeValues: {
       ':userArr': [
         ...connectedUsers,
@@ -28,6 +38,7 @@ export async function main(event) {
           Username: userData.Username,
         },
       ],
+      ':ml': [...newMessages],
     },
     ReturnValues: 'ALL_NEW',
   };
@@ -45,7 +56,9 @@ export async function main(event) {
         domainName,
         stage,
         connectionId: ID,
-        message: `[{"ID": "${connectionId}", "Username": "${userData.Username}"}]`,
+        message: `[{"ID": "${connectionId}", "Username": "${
+          userData.Username
+        }", "Messages": ${JSON.stringify(newMessages)}}]`,
         type: 'player_join',
       });
     }
@@ -61,7 +74,9 @@ export async function main(event) {
       connectionId: connectionId,
       message: `[{"SessionID": "${body.data}", "GameData": ${JSON.stringify(
         sessionData.GameData
-      )}, "Players": ${JSON.stringify(sessionUsers)}}]`,
+      )}, "Players": ${JSON.stringify(
+        sessionUsers
+      )}, "Messages": ${JSON.stringify(newMessages)}}]`,
       type: 'server_join',
     });
 

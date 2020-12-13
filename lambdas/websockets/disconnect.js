@@ -20,7 +20,7 @@ export async function main(event) {
   try {
     let updatedData;
     if (sessionId !== 'NA') {
-      updatedData = await deleteFromSession(sessionId, connectionId);
+      updatedData = await deleteFromSession(sessionId, userData);
     }
     await deleteUser(connectionId);
 

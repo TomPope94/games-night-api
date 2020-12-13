@@ -1,18 +1,11 @@
-import {
-  getCurrentGameData,
-  refreshDataSet,
-} from '../articulate/articulateHelpers';
 import { success, failure } from '../../common/API_Responses';
 import * as dynamoDbLib from '../../common/dynamodb-lib';
+import { getCurrentGameData } from '../../articulate/lambdas/articulateHelpers';
 import { getUser } from '../../common/user-db';
 import { send } from '../../common/websocketMessage';
 
 export async function main(event) {
   console.log('Event: ', event);
-
-  // get the json file from the s3 bucket
-  // update the session gameData with the raw data
-  // off to the races fam
 
   const eventBody = JSON.parse(event.body);
   const data = eventBody.data;
@@ -22,17 +15,17 @@ export async function main(event) {
   const GameData = sessionData.GameData;
   console.log('GameData: ', GameData);
 
-  const dataRaw = await refreshDataSet('FiveSecondRule/FiveSecondData.json');
-  const dataDecoded = dataRaw.Body.toString('utf-8');
-  console.log('data clean: ', dataDecoded);
-
-  const dataAsJson = JSON.parse(dataDecoded);
+  const { connectionId } = event.requestContext;
+  const userData = await getUser(connectionId);
 
   const updatedGameData = {
     ...GameData,
     FiveSeconds: {
       ...GameData.FiveSeconds,
-      gameData: dataAsJson,
+      players: [
+        ...GameData.FiveSeconds.players,
+        { ID: connectionId, Username: userData.Username },
+      ],
     },
   };
 
@@ -64,8 +57,8 @@ export async function main(event) {
         domainName,
         stage,
         connectionId: ID,
-        message: `[{"gameData": ${JSON.stringify(updatedGameData)}}]`,
-        type: 'fiveseconds_data_reset',
+        message: `[{"ID": "${connectionId}", "Username": "${userData.Username}"}]`,
+        type: 'fiveseconds_join',
       });
     }
 
