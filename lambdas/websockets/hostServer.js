@@ -44,7 +44,7 @@ export async function main(event) {
         },
       ],
       MessageList: messages,
-      GameData: { ...initGameState },
+      GameData: initGameState,
     },
   };
 

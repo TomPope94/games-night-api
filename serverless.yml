@@ -19,6 +19,7 @@ plugins:
 provider:
   name: aws
   runtime: nodejs12.x
+  versionFunctions: false
   stage: prod
   # apiGateway:
   # websocketApiId: sutjgw54hc

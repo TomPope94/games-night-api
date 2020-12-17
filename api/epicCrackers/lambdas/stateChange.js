@@ -16,12 +16,6 @@ export async function main(event) {
 
   console.log('GameData: ', GameData);
 
-  const startMove = !GameData.Crackers.gameStarted; // game started inits as false so this will return true which means the action is to start the game
-  // start move is needed to know if we need to calculate the starting team...
-
-  const numPlayers = GameData.Crackers.players.length;
-  const firstPlayerIndex = Math.floor(Math.random() * numPlayers);
-
   function scramblePlayers(arr) {
     const newArr = [...arr];
     for (let i = arr.length - 1; i > 0; i--) {
@@ -29,10 +23,13 @@ export async function main(event) {
       [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
     }
 
-    return newArr.join('');
+    return newArr;
   }
 
+  console.log(GameData.Crackers.players);
   const scrambledPlayers = scramblePlayers(GameData.Crackers.players);
+  console.log(scrambledPlayers);
+
   const matchups = scrambledPlayers.reduce(function (
     result,
     value,
@@ -94,9 +91,7 @@ export async function main(event) {
         domainName,
         stage,
         connectionId: ID,
-        message: `[{"gameData": ${JSON.stringify(
-          updatedGameData
-        )}, "startMove": "${startMove}"}]`,
+        message: `[{"gameData": ${JSON.stringify(updatedGameData)}}]`,
         type: 'crackers_state_change',
       });
     }

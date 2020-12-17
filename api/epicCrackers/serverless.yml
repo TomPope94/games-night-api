@@ -35,7 +35,7 @@ provider:
       Action: '*'
       Resource: 'arn:aws:execute-api:eu-west-1:*:*'
 
-  ##################### Articulate Routes ##########################
+  ##################### Crackers Routes ##########################
 functions:
   crackers-player-change:
     handler: lambdas/playerChange.main
@@ -57,8 +57,13 @@ functions:
     events:
       - websocket:
           route: crackersendgame
-  crackers-playerAnswer:
-    handler: lambdas/playerAnsewr.main
+  crackers-resetData:
+    handler: lambdas/resetData.main
     events:
       - websocket:
-          route: crackerplayeranswer
+          route: crackerdatareset
+  # crackers-playerAnswer:
+  #   handler: lambdas/playerAnsewr.main
+  #   events:
+  #     - websocket:
+  #         route: crackerplayeranswer
